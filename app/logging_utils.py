@@ -12,7 +12,6 @@ from . import metrics
 
 
 class JSONFormatter(logging.Formatter):
-    """Custom formatter to output logs in JSON format"""
 
     def format(self, record):
         log_data = {
@@ -21,7 +20,6 @@ class JSONFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
 
-        # Add extra fields if present
         if hasattr(record, "request_id"):
             log_data["request_id"] = record.request_id
         if hasattr(record, "method"):
@@ -43,14 +41,9 @@ class JSONFormatter(logging.Formatter):
 
 
 def setup_logging(log_level: str = "INFO"):
-    """Configure logging to use JSON format"""
     logger = logging.getLogger()
     logger.setLevel(log_level.upper())
-
-    # Remove existing handlers
     logger.handlers.clear()
-
-    # Add console handler with JSON formatter
     handler = logging.StreamHandler()
     handler.setFormatter(JSONFormatter())
     logger.addHandler(handler)
@@ -59,30 +52,23 @@ def setup_logging(log_level: str = "INFO"):
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-    """Middleware to log all HTTP requests in JSON format and record metrics"""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Generate unique request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
 
-        # Record start time
         start_time = time.time()
 
-        # Process request
         response = await call_next(request)
 
-        # Calculate latency
         latency_ms = int((time.time() - start_time) * 1000)
 
-        # Record metrics (skip /metrics endpoint to avoid recursion)
         if request.url.path != "/metrics":
             metrics.record_http_request(
                 path=request.url.path, method=request.method, status=response.status_code
             )
             metrics.record_request_latency(latency_ms)
 
-        # Log the request
         logger = logging.getLogger()
         logger.info(
             f"{request.method} {request.url.path} {response.status_code}",
@@ -99,7 +85,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
 
 def log_webhook_event(request_id: str, message_id: str, duplicate: bool, result: str):
-    """Log webhook-specific events"""
     logger = logging.getLogger()
     logger.info(
         f"Webhook processed: {message_id}",

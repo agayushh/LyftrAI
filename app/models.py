@@ -12,14 +12,13 @@ class Message(SQLModel, table=True):
     message_id: str = Field(primary_key=True)
     from_msisdn: str = Field(index=True)
     to_msisdn: str = Field(index=True)
-    ts: str  # ISO-8601 timestamp from webhook
+    ts: str  
     text: Optional[str] = None
-    created_at: str  # Server timestamp ISO-8601
+    created_at: str 
 
     @field_validator("from_msisdn", "to_msisdn")
     @classmethod
     def validate_e164_format(cls, v: str) -> str:
-        """Validate that phone numbers are in E.164-like format: +[digits only]"""
         if not v:
             raise ValueError("Phone number cannot be empty")
         if not v.startswith("+"):
