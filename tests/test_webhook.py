@@ -34,14 +34,12 @@ def test_engine():
 def client(test_engine):
     from app import main, models, storage
 
-
     original_engine = models.engine
     models.engine = test_engine
     storage.engine = test_engine
 
     with TestClient(main.app) as test_client:
         yield test_client
-
 
     models.engine = original_engine
     storage.engine = original_engine
@@ -59,7 +57,7 @@ def generate_signature(secret: str, body: bytes) -> str:
 class TestWebhookValidInsert:
 
     def test_valid_message_insert(self, client, webhook_secret):
-            message = {
+        message = {
             "message_id": "msg_001",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -80,7 +78,7 @@ class TestWebhookValidInsert:
         assert response.json() == {"status": "ok"}
 
     def test_valid_message_without_text(self, client, webhook_secret):
-            message = {
+        message = {
             "message_id": "msg_002",
             "from": "+919123456789",
             "to": "+14155558100",
@@ -103,7 +101,7 @@ class TestWebhookValidInsert:
 class TestWebhookDuplicate:
 
     def test_duplicate_message_idempotent(self, client, webhook_secret):
-            message = {
+        message = {
             "message_id": "msg_dup_001",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -116,18 +114,16 @@ class TestWebhookDuplicate:
 
         headers = {"Content-Type": "application/json", "X-Signature": signature}
 
-    
         response1 = client.post("/webhook", data=body, headers=headers)
         assert response1.status_code == 200
         assert response1.json() == {"status": "ok"}
 
-    
         response2 = client.post("/webhook", data=body, headers=headers)
         assert response2.status_code == 200
         assert response2.json() == {"status": "ok"}
 
     def test_duplicate_with_different_content(self, client, webhook_secret):
-            message1 = {
+        message1 = {
             "message_id": "msg_dup_002",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -138,7 +134,6 @@ class TestWebhookDuplicate:
         body1 = json.dumps(message1).encode()
         signature1 = generate_signature(webhook_secret, body1)
 
-    
         response1 = client.post(
             "/webhook",
             data=body1,
@@ -146,9 +141,8 @@ class TestWebhookDuplicate:
         )
         assert response1.status_code == 200
 
-    
         message2 = {
-            "message_id": "msg_dup_002", 
+            "message_id": "msg_dup_002",
             "from": "+919999999999",
             "to": "+14155558100",
             "ts": "2025-01-15T14:00:00.000Z",
@@ -169,7 +163,7 @@ class TestWebhookDuplicate:
 class TestWebhookSignature:
 
     def test_missing_signature_header(self, client):
-            message = {
+        message = {
             "message_id": "msg_003",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -185,7 +179,7 @@ class TestWebhookSignature:
         assert response.json() == {"detail": "invalid signature"}
 
     def test_invalid_signature(self, client):
-            message = {
+        message = {
             "message_id": "msg_004",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -205,7 +199,7 @@ class TestWebhookSignature:
         assert response.json() == {"detail": "invalid signature"}
 
     def test_wrong_secret_signature(self, client):
-            message = {
+        message = {
             "message_id": "msg_005",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -214,7 +208,7 @@ class TestWebhookSignature:
         }
 
         body = json.dumps(message).encode()
-    
+
         wrong_signature = generate_signature("wrong_secret", body)
 
         response = client.post(
@@ -227,7 +221,7 @@ class TestWebhookSignature:
         assert response.json() == {"detail": "invalid signature"}
 
     def test_empty_signature(self, client):
-            message = {
+        message = {
             "message_id": "msg_006",
             "from": "+919876543210",
             "to": "+14155558100",
@@ -248,10 +242,9 @@ class TestWebhookSignature:
 class TestWebhookValidation:
 
     def test_missing_required_field(self, client, webhook_secret):
-            message = {
+        message = {
             "message_id": "msg_008",
             "from": "+919876543210",
-        
             "ts": "2025-01-15T20:00:00.000Z",
             "text": "Test",
         }
