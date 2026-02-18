@@ -26,6 +26,7 @@ def record_http_request(path: str, method: str, status: int):
 
 
 def record_webhook_request(result: str):
+    """
     Record a webhook request outcome.
 
     Valid results:
@@ -33,6 +34,7 @@ def record_webhook_request(result: str):
     - duplicate: Duplicate message (idempotent)
     - invalid_signature: Signature verification failed
     - validation_error: Request validation failed
+    """
     webhook_requests_total.labels(result=result).inc()
 
 
@@ -41,7 +43,9 @@ def record_request_latency(latency_ms: float):
 
 
 def get_metrics() -> Response:
+    """
     Generate Prometheus metrics in text exposition format.
     Returns a Response with metrics data.
+    """
     metrics_data = generate_latest(registry)
     return Response(content=metrics_data, media_type=CONTENT_TYPE_LATEST)

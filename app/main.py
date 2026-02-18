@@ -54,10 +54,12 @@ def verify_signature(secret: str, body: bytes, signature: str) -> bool:
 
 @app.post("/webhook")
 async def webhook(request: Request, message: WebhookMessage):
+    """
     Receive and validate webhook messages.
 
     Validates HMAC signature and stores message in database.
     Returns 200 for both new and duplicate messages (idempotent).
+    """
 
     body = await request.body()
 
@@ -110,9 +112,11 @@ async def get_messages(
     q: Optional[str] = Query(None, description="Free-text search in message text"),
     message_id: Optional[str] = Query(None, description="Filter by exact message_id"),
 ):
+    """
     List stored messages with pagination and filters.
 
     Returns messages ordered by timestamp (ascending, deterministic).
+    """
 
     filters = {}
     if from_:
@@ -133,21 +137,24 @@ async def get_messages(
 
 @app.get("/stats")
 async def get_stats():
+    """
     Get message analytics and statistics.
 
     Returns aggregated data including total messages, sender counts, etc.
+    """
     stats = storage.get_stats()
     return stats
 
 
 @app.get("/health/live")
 async def health_live():
-    Liveness probe - always returns 200 if app is running.
+    """Liveness probe - always returns 200 if app is running."""
     return {"status": "ok"}
 
 
 @app.get("/health/ready")
 async def health_ready():
+    """
     Readiness probe - checks if app is ready to serve traffic.
 
     Verifies:
@@ -155,6 +162,7 @@ async def health_ready():
     - WEBHOOK_SECRET is configured
 
     Returns 200 if ready, 503 if not ready.
+    """
 
     if not webhook_secret:
         return JSONResponse(
@@ -172,12 +180,14 @@ async def health_ready():
 
 @app.get("/metrics")
 async def get_metrics():
+    """
     Expose Prometheus-style metrics.
 
     Returns metrics in Prometheus text exposition format including:
     - http_requests_total: Counter for all HTTP requests
     - webhook_requests_total: Counter for webhook processing outcomes
     - request_latency_ms: Histogram for request latency
+    """
     return metrics.get_metrics()
 
 
